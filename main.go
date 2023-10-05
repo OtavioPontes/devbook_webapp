@@ -10,12 +10,21 @@ import (
 	"net/http"
 )
 
+/* func init() {
+	hashKey := securecookie.GenerateRandomKey(16)
+
+	blockKey := securecookie.GenerateRandomKey(16)
+
+	fmt.Println(hex.EncodeToString(hashKey))
+	fmt.Println(hex.EncodeToString(blockKey))
+} */
+
 func main() {
 	config.Load()
 	cookies.Config()
 	r := router.Generate()
 	utils.LoadTemplates()
 
-	fmt.Println("Running WebApp in 3000")
-	log.Fatal(http.ListenAndServe(":3000", r))
+	fmt.Printf("Running WebApp in %d", config.Port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r))
 }
