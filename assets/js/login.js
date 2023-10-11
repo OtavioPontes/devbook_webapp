@@ -7,14 +7,14 @@ function login(event) {
     url: "/login",
     method: "POST",
     data: {
-      email: $(`#email`).val(),
-      password: $(`#password`).val(),
+      email: $("#email").val(),
+      password: $("#password").val(),
     },
   })
     .done(function () {
       window.location = "/home";
     })
     .fail(function () {
-      alert("Usuário ou senha inválidos 😥");
+      Swal.fire("Erro!", "Usuário ou senha inválidos 😥", "error");
     });
 }

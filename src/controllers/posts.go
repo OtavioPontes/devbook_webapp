@@ -3,7 +3,6 @@ package controllers
 import (
 	"bytes"
 	"devbook_webapp/src/config"
-	"devbook_webapp/src/cookies"
 	"devbook_webapp/src/requests"
 	"devbook_webapp/src/responses"
 	"encoding/json"
@@ -14,14 +13,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func CreateUser(w http.ResponseWriter, r *http.Request) {
+func CreatePost(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
-	user, err := json.Marshal(map[string]string{
-		"name":     r.FormValue("name"),
-		"email":    r.FormValue("email"),
-		"nick":     r.FormValue("nick"),
-		"password": r.FormValue("password"),
+	post, err := json.Marshal(map[string]string{
+		"title":   r.FormValue("title"),
+		"content": r.FormValue("content"),
 	})
 
 	if err != nil {
@@ -29,12 +26,15 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := http.Post(fmt.Sprintf("%s/users", config.ApiUrl), "application/json", bytes.NewBuffer(user))
+	url := fmt.Sprintf("%s/posts", config.ApiUrl)
+
+	response, err := requests.RequestWithAuth(r, http.MethodPost, url, bytes.NewBuffer(post))
 
 	if err != nil {
 		responses.JSON(w, http.StatusInternalServerError, responses.ErrorAPI{Error: err.Error()})
 		return
 	}
+
 	defer response.Body.Close()
 
 	if response.StatusCode >= 400 {
@@ -45,17 +45,15 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	responses.JSON(w, response.StatusCode, nil)
 }
 
-func Unfollow(w http.ResponseWriter, r *http.Request) {
+func LikePost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-
-	userId, err := strconv.ParseUint(params["id"], 10, 64)
-
+	postId, err := strconv.ParseUint(params["postId"], 10, 64)
 	if err != nil {
 		responses.JSON(w, http.StatusBadRequest, responses.ErrorAPI{Error: err.Error()})
 		return
 	}
 
-	url := fmt.Sprintf("%s/users/%d/unfollow", config.ApiUrl, userId)
+	url := fmt.Sprintf("%s/posts/%d/like", config.ApiUrl, postId)
 
 	response, err := requests.RequestWithAuth(r, http.MethodPost, url, nil)
 
@@ -75,17 +73,15 @@ func Unfollow(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func Follow(w http.ResponseWriter, r *http.Request) {
+func DislikePost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-
-	userId, err := strconv.ParseUint(params["id"], 10, 64)
-
+	postId, err := strconv.ParseUint(params["postId"], 10, 64)
 	if err != nil {
 		responses.JSON(w, http.StatusBadRequest, responses.ErrorAPI{Error: err.Error()})
 		return
 	}
 
-	url := fmt.Sprintf("%s/users/%d/follow", config.ApiUrl, userId)
+	url := fmt.Sprintf("%s/posts/%d/dislike", config.ApiUrl, postId)
 
 	response, err := requests.RequestWithAuth(r, http.MethodPost, url, nil)
 
@@ -105,13 +101,20 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func EditProfile(w http.ResponseWriter, r *http.Request) {
+func UpdatePost(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	postId, err := strconv.ParseUint(params["postId"], 10, 64)
+
+	if err != nil {
+		responses.JSON(w, http.StatusBadRequest, responses.ErrorAPI{Error: err.Error()})
+		return
+	}
+
 	r.ParseForm()
 
-	user, err := json.Marshal(map[string]string{
-		"name":  r.FormValue("name"),
-		"nick":  r.FormValue("nick"),
-		"email": r.FormValue("email"),
+	post, err := json.Marshal(map[string]string{
+		"title":   r.FormValue("title"),
+		"content": r.FormValue("content"),
 	})
 
 	if err != nil {
@@ -119,18 +122,46 @@ func EditProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, _ := cookies.Read(r)
-	userId, _ := strconv.ParseUint(cookie["id"], 10, 64)
+	url := fmt.Sprintf("%s/posts/%d", config.ApiUrl, postId)
 
-	url := fmt.Sprintf("%s/users/%d", config.ApiUrl, userId)
+	response, err := requests.RequestWithAuth(r, http.MethodPut, url, bytes.NewBuffer(post))
 
-	response, err := requests.RequestWithAuth(r, http.MethodPut, url, bytes.NewBuffer(user))
 	if err != nil {
 		responses.JSON(w, http.StatusInternalServerError, responses.ErrorAPI{Error: err.Error()})
 		return
 	}
 
 	defer response.Body.Close()
+
+	if response.StatusCode >= 400 {
+		responses.HandleStatusCodeErrors(w, response)
+		return
+	}
+
+	responses.JSON(w, response.StatusCode, nil)
+
+}
+
+func DeletePost(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	postId, err := strconv.ParseUint(params["postId"], 10, 64)
+
+	if err != nil {
+		responses.JSON(w, http.StatusBadRequest, responses.ErrorAPI{Error: err.Error()})
+		return
+	}
+
+	url := fmt.Sprintf("%s/posts/%d", config.ApiUrl, postId)
+
+	response, err := requests.RequestWithAuth(r, http.MethodDelete, url, nil)
+
+	if err != nil {
+		responses.JSON(w, http.StatusInternalServerError, responses.ErrorAPI{Error: err.Error()})
+		return
+	}
+
+	defer response.Body.Close()
+
 	if response.StatusCode >= 400 {
 		responses.HandleStatusCodeErrors(w, response)
 		return

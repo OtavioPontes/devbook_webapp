@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Devbook - {{ .User.Name}}</title>
+    <link rel="stylesheet" href="/assets/css/bootstrap.css" />
+    <link rel="stylesheet" href="/assets/css/home.css">
+  </head>
+  <body>
+    {{template "header"}} {{$FollowedByLoggedUser := false}} {{ range
+    .User.Followers}} {{if (eq .Id $.UserId)}} {{$FollowedByLoggedUser = true}}
+    {{end}} {{end}}
+
+    <div class="container-fluid">
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Perfil do usuário</h5>
+              <h6 class="card-subtitle mb-2 text-muted">
+                {{.User.Name}} - {{.User.Nick}} - Membro Desde:
+                {{.User.CreatedAt.Format "02/01/2006"}}
+              </h6>
+              <p class="card-text">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#modal-followers"> Seguidores: {{len .User.Followers}} </a>
+              </p>
+              <p class="card-text">
+                <a href="#" data-bs-toggle="modal" data-bs-target="#modal-followings"> Seguindo: {{len .User.Followings}} </a>
+              </p>
+
+              <a href="#" class="card-link">
+                {{if $FollowedByLoggedUser}}
+                <button
+                  id="unfollow"
+                  class="btn btn-info"
+                  data-user-id="{{.User.Id}}"
+                >
+                  Deixar de Seguir
+                </button>
+                {{else}}
+                <button
+                  id="follow"
+                  class="btn btn-info"
+                  data-user-id="{{.User.Id}}"
+                >
+                  Seguir
+                </button>
+                {{end}}
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Publicações do Usuário {{.User.Nick}}</h5>
+                    <p class="card-text">
+                        {{range .User.Posts}}
+                            {{template "post-without-permissions" .}}
+                            {{else}}
+                            <p class="text-muted text-center">
+                                Nenhuma publicação por enquanto...
+                            </p>
+                        {{end}}
+                    </p>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+
+    {{template "modal-followers" .User}}
+    {{template "modal-followings" .User}}
+    {{template "footer"}} {{template "scripts"}}
+   
+    <script src="/assets/js/posts.js"></script>
+    <script src="/assets/js/user.js"></script>
+    
+  </body>
+</html>

@@ -5,7 +5,8 @@ function createUser(event) {
   console.log("cadastrando...");
 
   if ($(`#password`).val() != $(`#confirm-password`).val()) {
-    alert("Senhas devem ser iguais");
+    Swal.fire("Ops...", "As senhas devem ser iguais", "error");
+
     return;
   }
 
@@ -20,9 +21,28 @@ function createUser(event) {
     },
   })
     .done(function () {
-      alert("Usuário Cadastrado com sucesso ✅");
+      Swal.fire(
+        "Sucesso!",
+        "Usuário Cadastrado com sucesso ✅",
+        "success"
+      ).then(function () {
+        $.ajax({
+          url: "/login",
+          method: "POST",
+          data: {
+            email: $("#email").val(),
+            password: $("#password").val(),
+          },
+        })
+          .done(function () {
+            window.location = "/home";
+          })
+          .fail(function () {
+            Swal.fire("Erro!", "Falha ao autenticar usuário", "error");
+          });
+      });
     })
     .fail(function () {
-      alert("Erro ao cadastrar usuário 😥");
+      Swal.fire("Erro!", "Erro ao cadastrar usuário 😥", "error");
     });
 }

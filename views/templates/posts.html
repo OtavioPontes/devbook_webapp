@@ -1,0 +1,32 @@
+{{ define "likes"}}
+<i class="fa-solid fa-heart like-post" style="cursor: pointer"></i>
+<span>{{ .Likes }}</span>
+{{ end }} {{ define "edit" }}
+<a href="/posts/{{ .Id }}/edit" style="text-decoration: none"
+  ><i class="fa-solid fa-pen-to-square me-2 ms-4" style="cursor: pointer"></i
+></a>
+{{ end }} {{ define "delete" }}
+<i
+  class="fa-solid fa-trash text-danger delete-post"
+  style="cursor: pointer"
+></i>
+{{ end }} {{ define "post-header"}}
+<h1 class="display-4">{{ .Title }}</h1>
+<p class="lead">{{ .Content }}</p>
+<a href="/users/{{.AuthorId}}"
+  >{{ .AuthorNick }} - {{ .CreatedAt.Format "02/01/2006"}}</a
+>
+<hr class="my-4" />
+{{ end }} {{ define "post-with-permissions" }}
+<div class="jumbotron" data-post-id="{{ .Id}}">
+  {{ template "post-header" .}}
+  <p>
+    {{ template "likes" . }} {{ template "edit" . }} {{ template "delete" . }}
+  </p>
+</div>
+{{ end }} {{ define "post-without-permissions" }}
+<div class="jumbotron" data-post-id="{{ .Id}}">
+  {{ template "post-header" .}}
+  <p>{{ template "likes" .}}</p>
+</div>
+{{ end }}
