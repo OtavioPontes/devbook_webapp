@@ -60,4 +60,22 @@ var routeUsers = []Route{
 		Function:              controllers.EditProfile,
 		RequireAuthentication: true,
 	},
+	{
+		Uri:                   "/update-password",
+		Method:                http.MethodGet,
+		Function:              controllers.LoadUpdatePasswordPage,
+		RequireAuthentication: true,
+	},
+	{
+		Uri:                   "/edit-password",
+		Method:                http.MethodPost,
+		Function:              controllers.UpdatePassword,
+		RequireAuthentication: true,
+	},
+	{
+		Uri:                   "/delete-user",
+		Method:                http.MethodDelete,
+		Function:              controllers.DeleteUser,
+		RequireAuthentication: true,
+	},
 }
